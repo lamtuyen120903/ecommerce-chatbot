@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +8,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { AlertTriangle } from "lucide-react"
+} from "@/components/ui/dialog";
+import { AlertTriangle } from "lucide-react";
 
 interface ConfirmationDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  description: string
-  confirmText?: string
-  cancelText?: string
-  onConfirm: () => void
-  variant?: "default" | "destructive"
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  variant?: "default" | "destructive";
 }
 
 export function ConfirmationDialog({
@@ -27,19 +27,19 @@ export function ConfirmationDialog({
   onOpenChange,
   title,
   description,
-  confirmText = "Yes",
-  cancelText = "No",
+  confirmText = "Có",
+  cancelText = "Không",
   onConfirm,
   variant = "default",
 }: ConfirmationDialogProps) {
   const handleConfirm = () => {
-    onConfirm()
-    onOpenChange(false)
-  }
+    onConfirm();
+    onOpenChange(false);
+  };
 
   const handleCancel = () => {
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,14 +51,26 @@ export function ConfirmationDialog({
                 variant === "destructive" ? "bg-red-100" : "bg-orange-100"
               }`}
             >
-              <AlertTriangle className={`w-5 h-5 ${variant === "destructive" ? "text-red-600" : "text-orange-600"}`} />
+              <AlertTriangle
+                className={`w-5 h-5 ${
+                  variant === "destructive" ? "text-red-600" : "text-orange-600"
+                }`}
+              />
             </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">{title}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              {title}
+            </DialogTitle>
           </div>
-          <DialogDescription className="text-gray-600 text-left leading-relaxed">{description}</DialogDescription>
+          <DialogDescription className="text-gray-600 text-left leading-relaxed">
+            {description}
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 space-y-2 space-y-reverse sm:space-y-0">
-          <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            className="w-full sm:w-auto"
+          >
             {cancelText}
           </Button>
           <Button
@@ -74,5 +86,5 @@ export function ConfirmationDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

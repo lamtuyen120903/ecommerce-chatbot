@@ -1,451 +1,481 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   MessageCircle,
-  Mail,
-  Lock,
   Shield,
-  Zap,
-  Users,
-  User,
-  Phone,
-  MapPin,
-  Eye,
-  EyeOff,
+  Smartphone,
+  Headphones,
+  CreditCard,
+  Truck,
+  Clock,
   CheckCircle,
-  AlertCircle,
-} from "lucide-react"
-import { useAuth } from "../../hooks/useAuth"
-import type { RegisterData, LoginData, AuthError } from "../../types/auth"
+} from "lucide-react";
+import { AuthGuard } from "../../components/auth-guard";
+import { useAuthStore } from "../../lib/auth-store";
+import type { RegisterData, LoginData, AuthError } from "../../types/auth";
 
 export default function AuthPage() {
-  const router = useRouter()
-  const { login, register } = useAuth()
+  const router = useRouter();
+  const { register, login } = useAuthStore();
+  const [activeTab, setActiveTab] = useState("login");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<AuthError[]>([]);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Login state
+  // Form data
   const [loginData, setLoginData] = useState<LoginData>({
     email: "",
     password: "",
-  })
+  });
 
-  // Registration state
   const [registerData, setRegisterData] = useState<RegisterData>({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
-    phone: "",
-    address: "",
-  })
+  });
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<AuthError[]>([])
-  const [successMessage, setSuccessMessage] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [activeTab, setActiveTab] = useState("register") // Default to register
+  const handleLoginDataChange = (field: keyof LoginData, value: string) => {
+    setLoginData((prev) => ({ ...prev, [field]: value }));
+    clearErrors();
+  };
 
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setLoginData((prev) => ({ ...prev, [name]: value }))
-    clearErrors()
-  }
-
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setRegisterData((prev) => ({ ...prev, [name]: value }))
-    clearErrors()
-  }
+  const handleRegisterDataChange = (
+    field: keyof RegisterData,
+    value: string
+  ) => {
+    setRegisterData((prev) => ({ ...prev, [field]: value }));
+    clearErrors();
+  };
 
   const clearErrors = () => {
-    setErrors([])
-    setSuccessMessage("")
-  }
+    setErrors([]);
+    setSuccessMessage("");
+  };
 
   const getFieldError = (field: string): string | undefined => {
-    return errors.find((error) => error.field === field)?.message
-  }
+    return errors.find((error) => error.field === field)?.message;
+  };
 
   const getGeneralError = (): string | undefined => {
-    return errors.find((error) => !error.field)?.message
-  }
+    return errors.find((error) => !error.field)?.message;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    clearErrors()
+    e.preventDefault();
+    setIsLoading(true);
+    clearErrors();
 
     try {
-      const result = await login(loginData)
+      const result = await login(loginData);
 
       if (result.success) {
-        setSuccessMessage(result.message || "Login successful!")
+        setSuccessMessage(result.message || "Đăng nhập thành công!");
         setTimeout(() => {
-          router.push("/")
-        }, 1000)
+          router.push("/");
+        }, 1500);
       } else {
-        setErrors(result.errors || [])
+        setErrors(result.errors || []);
       }
     } catch (err) {
-      setErrors([{ message: "Login failed. Please try again." }])
+      setErrors([{ message: "Đăng nhập thất bại. Vui lòng thử lại." }]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    clearErrors()
+    e.preventDefault();
+    setIsLoading(true);
+    clearErrors();
 
     try {
-      const result = await register(registerData)
+      const result = await register(registerData);
 
       if (result.success) {
-        setSuccessMessage(result.message || "Account created successfully!")
+        setSuccessMessage(result.message || "Tài khoản được tạo thành công!");
         setTimeout(() => {
-          router.push("/")
-        }, 1500)
+          router.push("/");
+        }, 1500);
       } else {
-        setErrors(result.errors || [])
+        setErrors(result.errors || []);
       }
     } catch (err) {
-      setErrors([{ message: "Registration failed. Please try again." }])
+      setErrors([{ message: "Đăng ký thất bại. Vui lòng thử lại." }]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex flex-col">
-      {/* Header Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        <div className="text-center space-y-6 mb-12">
-          {/* Logo */}
-          <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-            <MessageCircle className="w-10 h-10 text-white" />
-          </div>
-
-          {/* Title and Description */}
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold text-gray-900">Customer Support Chat</h1>
-            <p className="text-lg text-gray-600 max-w-md mx-auto">
-              Get instant help with our AI-powered customer service platform
-            </p>
-          </div>
-        </div>
-
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl w-full">
-          <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-            <CardContent className="pt-6 pb-6">
-              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-green-600" />
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex flex-col">
+        {/* Header */}
+        <div className="bg-green-600 text-white p-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <MessageCircle className="w-10 h-10 text-white" />
+              <div>
+                <h1 className="text-2xl font-bold">Trợ lý AI Thương mại</h1>
+                <p className="text-green-100">Hỗ trợ khách hàng thông minh</p>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Secure & Private</h3>
-              <p className="text-sm text-gray-600">Your conversations are encrypted and secure</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-            <CardContent className="pt-6 pb-6">
-              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Instant Response</h3>
-              <p className="text-sm text-gray-600">Get immediate answers to your questions</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-            <CardContent className="pt-6 pb-6">
-              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Expert Support</h3>
-              <p className="text-sm text-gray-600">Connect with human agents when needed</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Auth Card */}
-        <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-2xl font-bold text-gray-900">Customer Support Portal</CardTitle>
-            <CardDescription className="text-gray-600">
-              {activeTab === "register" ? "Create your account to get started" : "Sign in to your account"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2 bg-green-50">
-                <TabsTrigger
-                  value="register"
-                  className="data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm font-medium"
-                >
-                  Create Account
-                </TabsTrigger>
-                <TabsTrigger
-                  value="login"
-                  className="data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm font-medium"
-                >
-                  Sign In
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Success Message */}
-              {successMessage && (
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-                </Alert>
-              )}
-
-              {/* General Error Message */}
-              {getGeneralError() && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">{getGeneralError()}</AlertDescription>
-                </Alert>
-              )}
-
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name" className="text-gray-700 font-medium">
-                      Full Name *
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-name"
-                        name="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={registerData.name}
-                        onChange={handleRegisterChange}
-                        className={`pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("name") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                        required
-                      />
-                    </div>
-                    {getFieldError("name") && <p className="text-sm text-red-600">{getFieldError("name")}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email" className="text-gray-700 font-medium">
-                      Email Address *
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={registerData.email}
-                        onChange={handleRegisterChange}
-                        className={`pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("email") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                        required
-                      />
-                    </div>
-                    {getFieldError("email") && <p className="text-sm text-red-600">{getFieldError("email")}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-phone" className="text-gray-700 font-medium">
-                      Phone Number
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        value={registerData.phone}
-                        onChange={handleRegisterChange}
-                        className={`pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("phone") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                      />
-                    </div>
-                    {getFieldError("phone") && <p className="text-sm text-red-600">{getFieldError("phone")}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-address" className="text-gray-700 font-medium">
-                      Address
-                    </Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-address"
-                        name="address"
-                        type="text"
-                        placeholder="Enter your address"
-                        value={registerData.address}
-                        onChange={handleRegisterChange}
-                        className="pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password" className="text-gray-700 font-medium">
-                      Password *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a strong password"
-                        value={registerData.password}
-                        onChange={handleRegisterChange}
-                        className={`pl-10 pr-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("password") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {getFieldError("password") && <p className="text-sm text-red-600">{getFieldError("password")}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-confirm-password" className="text-gray-700 font-medium">
-                      Confirm Password *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="register-confirm-password"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm your password"
-                        value={registerData.confirmPassword}
-                        onChange={handleRegisterChange}
-                        className={`pl-10 pr-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("confirmPassword")
-                            ? "border-red-300 focus:border-red-400 focus:ring-red-400"
-                            : ""
-                        }`}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {getFieldError("confirmPassword") && (
-                      <p className="text-sm text-red-600">{getFieldError("confirmPassword")}</p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium shadow-lg"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-gray-700 font-medium">
-                      Email Address
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="login-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={loginData.email}
-                        onChange={handleLoginChange}
-                        className={`pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("email") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                        required
-                      />
-                    </div>
-                    {getFieldError("email") && <p className="text-sm text-red-600">{getFieldError("email")}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-gray-700 font-medium">
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="login-password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={loginData.password}
-                        onChange={handleLoginChange}
-                        className={`pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400 h-12 ${
-                          getFieldError("password") ? "border-red-300 focus:border-red-400 focus:ring-red-400" : ""
-                        }`}
-                        required
-                      />
-                    </div>
-                    {getFieldError("password") && <p className="text-sm text-red-600">{getFieldError("password")}</p>}
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium shadow-lg"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            {/* Additional Options */}
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500">
-                By continuing, you agree to our{" "}
-                <a href="#" className="text-green-600 hover:text-green-700 font-medium">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-green-600 hover:text-green-700 font-medium">
-                  Privacy Policy
-                </a>
-              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="hidden md:flex items-center space-x-4">
+              <Badge
+                variant="outline"
+                className="text-green-100 border-green-300"
+              >
+                <Shield className="w-4 h-4 mr-1" />
+                Bảo mật cao
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Bảo mật Tuyệt đối
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Dữ liệu được mã hóa và bảo vệ an toàn
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Smartphone className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Hỗ trợ 24/7
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Trợ lý AI luôn sẵn sàng hỗ trợ mọi lúc
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Headphones className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Tư vấn Thông minh
+                </h3>
+                <p className="text-sm text-gray-600">
+                  AI hiểu và giải đáp mọi thắc mắc
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-6 h-6 text-orange-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Thanh toán An toàn
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Kết nối với nhân viên khi cần thiết
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Auth Form */}
+          <div className="flex justify-center">
+            <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  Chào mừng trở lại
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  Đăng nhập hoặc tạo tài khoản để bắt đầu
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="p-6">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger
+                      value="login"
+                      className="data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm font-medium"
+                    >
+                      Đăng nhập
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="register"
+                      className="data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm font-medium"
+                    >
+                      Đăng ký
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Success Message */}
+                  {successMessage && (
+                    <Alert className="mb-4 border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        {successMessage}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* General Error Message */}
+                  {getGeneralError() && (
+                    <Alert className="mb-4 border-red-200 bg-red-50">
+                      <AlertDescription className="text-red-800">
+                        {getGeneralError()}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <TabsContent value="register" className="space-y-4">
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      <div>
+                        <Label
+                          htmlFor="name"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Họ và tên
+                        </Label>
+                        <Input
+                          id="name"
+                          type="text"
+                          value={registerData.name}
+                          onChange={(e) =>
+                            handleRegisterDataChange("name", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("name") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Nhập họ và tên"
+                        />
+                        {getFieldError("name") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("name")}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label
+                          htmlFor="email"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Email
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={registerData.email}
+                          onChange={(e) =>
+                            handleRegisterDataChange("email", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("email") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Nhập địa chỉ email"
+                        />
+                        {getFieldError("email") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("email")}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label
+                          htmlFor="phone"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Số điện thoại
+                        </Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={registerData.phone}
+                          onChange={(e) =>
+                            handleRegisterDataChange("phone", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("phone") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Nhập số điện thoại"
+                        />
+                        {getFieldError("phone") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("phone")}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label
+                          htmlFor="password"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Mật khẩu
+                        </Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={registerData.password}
+                          onChange={(e) =>
+                            handleRegisterDataChange("password", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("password") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Tạo mật khẩu"
+                        />
+                        {getFieldError("password") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("password")}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label
+                          htmlFor="confirmPassword"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Xác nhận mật khẩu
+                        </Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={registerData.confirmPassword}
+                          onChange={(e) =>
+                            handleRegisterDataChange(
+                              "confirmPassword",
+                              e.target.value
+                            )
+                          }
+                          className={`mt-1 ${
+                            getFieldError("confirmPassword")
+                              ? "border-red-500"
+                              : ""
+                          }`}
+                          placeholder="Nhập lại mật khẩu"
+                        />
+                        {getFieldError("confirmPassword") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("confirmPassword")}
+                          </p>
+                        )}
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium shadow-lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Đang tạo tài khoản..." : "Tạo Tài khoản"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+
+                  <TabsContent value="login" className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div>
+                        <Label
+                          htmlFor="loginEmail"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Email
+                        </Label>
+                        <Input
+                          id="loginEmail"
+                          type="email"
+                          value={loginData.email}
+                          onChange={(e) =>
+                            handleLoginDataChange("email", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("email") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Nhập địa chỉ email"
+                        />
+                        {getFieldError("email") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("email")}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label
+                          htmlFor="loginPassword"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Mật khẩu
+                        </Label>
+                        <Input
+                          id="loginPassword"
+                          type="password"
+                          value={loginData.password}
+                          onChange={(e) =>
+                            handleLoginDataChange("password", e.target.value)
+                          }
+                          className={`mt-1 ${
+                            getFieldError("password") ? "border-red-500" : ""
+                          }`}
+                          placeholder="Nhập mật khẩu"
+                        />
+                        {getFieldError("password") && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {getFieldError("password")}
+                          </p>
+                        )}
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium shadow-lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    </AuthGuard>
+  );
 }

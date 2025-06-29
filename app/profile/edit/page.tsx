@@ -1,268 +1,322 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../../../hooks/useAuth"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Shield,
+  CheckCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { useAuthStore } from "../../../lib/auth-store";
+import type { User as UserType } from "../../../types/auth";
 
 export default function EditProfilePage() {
-  const router = useRouter()
-  const { user, updateProfile } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<string[]>([])
-  const [successMessage, setSuccessMessage] = useState("")
+  const router = useRouter();
+  const { user, updateProfile } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
-  })
+    name: "",
+    email: "",
+    phone: "",
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-    setErrors([]) // Clear errors when user types
-    setSuccessMessage("")
-  }
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors([]); // Clear errors when user types
+    setSuccessMessage("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setErrors([])
-    setSuccessMessage("")
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors([]);
+    setSuccessMessage("");
 
     try {
-      // Validate form data
-      const validationErrors: string[] = []
-
+      // Basic validation
+      const validationErrors: string[] = [];
       if (!formData.name.trim()) {
-        validationErrors.push("Name is required")
+        validationErrors.push("Tên là bắt buộc");
       }
       if (!formData.email.trim()) {
-        validationErrors.push("Email is required")
+        validationErrors.push("Email là bắt buộc");
       }
 
       if (validationErrors.length > 0) {
-        setErrors(validationErrors)
-        return
+        setErrors(validationErrors);
+        setIsLoading(false);
+        return;
       }
 
-      const result = await updateProfile({
-        name: formData.name.trim(),
-        phone: formData.phone.trim() || undefined,
-        address: formData.address.trim() || undefined,
-      })
+      const result = await updateProfile(formData as Partial<UserType>);
 
       if (result.success) {
-        setSuccessMessage(result.message || "Profile updated successfully!")
+        setSuccessMessage(result.message || "Hồ sơ được cập nhật thành công!");
         setTimeout(() => {
-          router.push("/profile")
-        }, 1500)
+          router.push("/profile");
+        }, 1500);
       } else {
-        setErrors(result.errors?.map((e) => e.message) || ["Failed to update profile"])
+        setErrors(
+          result.errors?.map((e) => e.message) || ["Không thể cập nhật hồ sơ"]
+        );
       }
     } catch (error) {
-      console.error("Error saving profile:", error)
-      setErrors(["An unexpected error occurred. Please try again."])
+      console.error("Error saving profile:", error);
+      setErrors(["Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleChangePhoto = () => {
-    // Placeholder for photo change functionality
-    alert("Photo change functionality will be implemented soon!")
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600">Đang tải thông tin người dùng...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center justify-between">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="p-2">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-900">Edit Profile</h1>
+            <Link href="/profile">
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Quay lại
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                Chỉnh sửa Hồ sơ
+              </h1>
+              <p className="text-sm text-gray-500">
+                Cập nhật thông tin cá nhân của bạn
+              </p>
+            </div>
           </div>
-          <Button onClick={handleSubmit} disabled={isLoading} className="bg-green-500 hover:bg-green-600 text-white">
-            {isLoading ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </>
-            )}
-          </Button>
+          <Badge variant="outline" className="text-green-600 border-green-200">
+            <Shield className="w-3 h-3 mr-1" />
+            Bảo mật
+          </Badge>
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
-        {/* Success Message */}
-        {successMessage && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Error Messages */}
-        {errors.length > 0 && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <ul className="list-disc list-inside space-y-1">
-                {errors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Profile Photo */}
-        <div className="flex flex-col items-center justify-center">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <User className="w-12 h-12 text-green-600" />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-green-600 border-green-200 hover:bg-green-50"
-            onClick={handleChangePhoto}
-          >
-            Change Photo
-          </Button>
-        </div>
-
-        {/* Edit Form */}
-        <Card className="shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="text-lg">Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-700">
-                  Full Name *
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400"
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    className="pl-10 border-gray-200 bg-gray-50 cursor-not-allowed"
-                    placeholder="Enter your email address"
-                    disabled
-                  />
-                </div>
-                <p className="text-xs text-gray-500">Email address cannot be changed</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-gray-700">
-                  Phone Number
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-gray-700">
-                  Address
-                </Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="pl-10 border-gray-200 focus:border-green-400 focus:ring-green-400"
-                    placeholder="Enter your address"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button (Mobile) */}
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white h-12"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Saving Changes...</span>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="w-5 h-5 text-green-600" />
+                  <span>Thông tin Cá nhân</span>
+                </CardTitle>
+                <CardDescription>
+                  Cập nhật thông tin cơ bản của bạn
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="name"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Họ và tên
+                      </Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
+                        className="mt-1"
+                        placeholder="Nhập họ và tên"
+                      />
                     </div>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
 
-        {/* Privacy Note */}
-        <Card className="shadow-sm border-0 bg-green-50">
-          <CardContent className="p-4">
-            <div className="text-center text-sm text-green-700">
-              <div className="flex items-center justify-center mb-2">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+                    <div>
+                      <Label
+                        htmlFor="email"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
+                        className="mt-1"
+                        placeholder="Nhập địa chỉ email"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="phone"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Số điện thoại
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
+                      className="mt-1"
+                      placeholder="Nhập số điện thoại"
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-3">
+                    <Link href="/profile">
+                      <Button type="button" variant="outline">
+                        Hủy
+                      </Button>
+                    </Link>
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Đang lưu...</span>
+                        </div>
+                      ) : (
+                        "Lưu Thay đổi"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Success Message */}
+                {successMessage && (
+                  <Alert className="mt-6 border-green-200 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      {successMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Error Messages */}
+                {errors.length > 0 && (
+                  <Alert className="mt-6 border-red-200 bg-red-50">
+                    <AlertDescription className="text-red-800">
+                      <ul className="list-disc list-inside space-y-1">
+                        {errors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Current Profile Info */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Hồ sơ Hiện tại</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{user.name}</p>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                  </div>
                 </div>
-              </div>
-              <p className="font-medium mb-1">Your Privacy Matters</p>
-              <p>Your personal information is securely stored and will not be shared with third parties.</p>
-            </div>
-          </CardContent>
-        </Card>
+                {user.phone && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <span>{user.phone}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Security Info */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-green-600" />
+                  <span>Bảo mật</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 mb-4">
+                  Thông tin cá nhân của bạn được bảo vệ và không được chia sẻ
+                  với bên thứ ba.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-600">Mã hóa dữ liệu</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-600">Bảo mật SSL</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-600">Không chia sẻ dữ liệu</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }

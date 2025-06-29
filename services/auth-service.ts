@@ -1,184 +1,241 @@
-import type { RegisterData, LoginData, AuthResponse, User } from "../types/auth"
-import { validateRegistrationData, validateLoginData } from "../utils/auth-validation"
+import type {
+  RegisterData,
+  LoginData,
+  AuthResponse,
+  User,
+} from "../types/auth";
 import {
-  findUserByEmail,
-  saveUser,
-  hashPassword,
-  verifyPassword,
-  sanitizeUser,
-  setCurrentUser,
-  clearCurrentUser,
-  getCurrentUser,
-} from "../utils/auth-storage"
-import type { StoredUser } from "../utils/auth-storage"
+  validateRegistrationData,
+  validateLoginData,
+} from "../utils/auth-validation";
+import { supabase } from "../lib/supabase";
 
 export class AuthService {
   static async register(data: RegisterData): Promise<AuthResponse> {
     try {
       // Validate input data
-      const validationErrors = validateRegistrationData(data)
+      const validationErrors = validateRegistrationData(data);
       if (validationErrors.length > 0) {
         return {
           success: false,
           errors: validationErrors,
+        };
+      }
+
+      // Call server-side registration API
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          phone: data.phone,
+          address: data.address,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        // Store user in localStorage for client-side access
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUser", JSON.stringify(result.user));
         }
       }
 
-      // Check if user already exists
-      const existingUser = findUserByEmail(data.email)
-      if (existingUser) {
-        return {
-          success: false,
-          errors: [{ field: "email", message: "An account with this email already exists" }],
-        }
-      }
-
-      // Hash password
-      const { hash, salt } = hashPassword(data.password)
-
-      // Create new user
-      const newUser: StoredUser = {
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name: data.name.trim(),
-        email: data.email.toLowerCase().trim(),
-        phone: data.phone?.trim() || undefined,
-        address: data.address?.trim() || undefined,
-        passwordHash: hash,
-        salt,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isVerified: true, // Auto-verify for demo purposes
-      }
-
-      // Save user
-      const saved = saveUser(newUser)
-      if (!saved) {
-        return {
-          success: false,
-          errors: [{ message: "Failed to create account. Please try again." }],
-        }
-      }
-
-      // Return sanitized user data
-      const user = sanitizeUser(newUser)
-      setCurrentUser(user)
-
-      return {
-        success: true,
-        user,
-        message: "Account created successfully!",
-      }
+      return result;
     } catch (error) {
-      console.error("Registration error:", error)
+      console.error("Registration error:", error);
       return {
         success: false,
-        errors: [{ message: "An unexpected error occurred. Please try again." }],
-      }
+        errors: [
+          { message: "An unexpected error occurred. Please try again." },
+        ],
+      };
     }
   }
 
   static async login(data: LoginData): Promise<AuthResponse> {
     try {
       // Validate input data
-      const validationErrors = validateLoginData(data)
+      const validationErrors = validateLoginData(data);
       if (validationErrors.length > 0) {
         return {
           success: false,
           errors: validationErrors,
+        };
+      }
+
+      // Call server-side login API
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        // Store user in localStorage for client-side access
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUser", JSON.stringify(result.user));
         }
       }
 
-      // Find user by email
-      const storedUser = findUserByEmail(data.email)
-      if (!storedUser) {
-        return {
-          success: false,
-          errors: [{ message: "No account found with this email address. Please register first." }],
-        }
-      }
-
-      // Verify password
-      const isPasswordValid = verifyPassword(data.password, storedUser.passwordHash, storedUser.salt)
-      if (!isPasswordValid) {
-        return {
-          success: false,
-          errors: [{ field: "password", message: "Incorrect password. Please try again." }],
-        }
-      }
-
-      // Update last login
-      storedUser.updatedAt = new Date().toISOString()
-      saveUser(storedUser)
-
-      // Set current user
-      const user = sanitizeUser(storedUser)
-      setCurrentUser(user)
-
-      return {
-        success: true,
-        user,
-        message: "Login successful!",
-      }
+      return result;
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Login error:", error);
       return {
         success: false,
-        errors: [{ message: "An unexpected error occurred. Please try again." }],
+        errors: [
+          { message: "An unexpected error occurred. Please try again." },
+        ],
+      };
+    }
+  }
+
+  static async logout(): Promise<void> {
+    try {
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("currentUser");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("currentUser");
       }
     }
   }
 
-  static logout(): void {
-    clearCurrentUser()
-  }
-
   static getCurrentUser(): User | null {
-    return getCurrentUser()
+    try {
+      // Only access localStorage on the client side
+      if (typeof window === "undefined") {
+        return null;
+      }
+
+      const userStr = localStorage.getItem("currentUser");
+      if (!userStr) return null;
+      return JSON.parse(userStr);
+    } catch (error) {
+      console.error("Error getting current user:", error);
+      return null;
+    }
   }
 
-  static async updateProfile(userId: string, updates: Partial<User>): Promise<AuthResponse> {
+  static async updateProfile(
+    userId: string,
+    updates: Partial<User>
+  ): Promise<AuthResponse> {
     try {
-      const storedUser = findUserByEmail(getCurrentUser()?.email || "")
-      if (!storedUser || storedUser.id !== userId) {
+      const currentUser = this.getCurrentUser();
+      if (!currentUser || currentUser.id !== userId) {
         return {
           success: false,
           errors: [{ message: "User not found or unauthorized" }],
-        }
+        };
       }
 
-      // Update user data
-      const updatedUser: StoredUser = {
-        ...storedUser,
-        ...updates,
-        id: storedUser.id, // Ensure ID doesn't change
-        email: storedUser.email, // Ensure email doesn't change
-        passwordHash: storedUser.passwordHash, // Ensure password doesn't change
-        salt: storedUser.salt, // Ensure salt doesn't change
-        updatedAt: new Date().toISOString(),
-      }
+      // Update user data in our custom users table
+      const { data: userData, error: updateError } = await supabase
+        .from("users")
+        .update({
+          name: updates.name,
+          phone: updates.phone,
+          address: updates.address,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
+        .select()
+        .single();
 
-      const saved = saveUser(updatedUser)
-      if (!saved) {
+      if (updateError) {
         return {
           success: false,
           errors: [{ message: "Failed to update profile. Please try again." }],
-        }
+        };
       }
 
-      const user = sanitizeUser(updatedUser)
-      setCurrentUser(user)
+      // Update user in localStorage
+      const updatedUser: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        address: userData.address,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
+      };
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      }
 
       return {
         success: true,
-        user,
+        user: updatedUser,
         message: "Profile updated successfully!",
-      }
+      };
     } catch (error) {
-      console.error("Profile update error:", error)
+      console.error("Profile update error:", error);
       return {
         success: false,
-        errors: [{ message: "An unexpected error occurred. Please try again." }],
+        errors: [
+          { message: "An unexpected error occurred. Please try again." },
+        ],
+      };
+    }
+  }
+
+  // Method to check if user is authenticated
+  static async checkAuth(): Promise<User | null> {
+    try {
+      // First, try to get user from localStorage (our primary auth method)
+      const currentUser = this.getCurrentUser();
+      if (currentUser) {
+        // Verify the user still exists in our database by calling the server
+        const response = await fetch(
+          `/api/auth/check?userId=${currentUser.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.user) {
+            // Update localStorage with fresh user data
+            if (typeof window !== "undefined") {
+              localStorage.setItem("currentUser", JSON.stringify(result.user));
+            }
+            return result.user;
+          }
+        }
       }
+
+      // If no valid user found, clear localStorage and return null
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("currentUser");
+      }
+      return null;
+    } catch (error) {
+      console.error("Auth check error:", error);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("currentUser");
+      }
+      return null;
     }
   }
 }
