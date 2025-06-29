@@ -1,74 +1,84 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Edit, Package, Wallet, Bell, Settings, LogOut, ChevronRight, User } from "lucide-react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { useAuth } from "../../hooks/useAuth"
-import { UserChatStats } from "../../components/user-chat-stats"
+import type React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  ArrowLeft,
+  Edit,
+  Package,
+  Wallet,
+  Bell,
+  Settings,
+  LogOut,
+  ChevronRight,
+  User,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "../../hooks/useAuth";
+import { UserChatStats } from "../../components/user-chat-stats";
 
 interface MenuItem {
-  id: string
-  title: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  href?: string
-  action?: () => void
-  variant?: "default" | "danger"
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href?: string;
+  action?: () => void;
+  variant?: "default" | "danger";
 }
 
 export default function ProfilePage() {
-  const router = useRouter()
-  const { user, logout: authLogout } = useAuth()
+  const router = useRouter();
+  const { user, logout: authLogout } = useAuth();
 
   const handleLogout = () => {
-    authLogout()
-    router.push("/auth")
-  }
+    authLogout();
+    router.push("/auth");
+  };
 
   const menuItems: MenuItem[] = [
     {
       id: "orders",
-      title: "My Orders",
-      description: "View your order history",
+      title: "Đơn hàng của tôi",
+      description: "Xem lịch sử đơn hàng",
       icon: Package,
       href: "/orders",
     },
     {
       id: "wallet",
-      title: "My Wallet",
-      description: "Manage your wallet and payments",
+      title: "Ví của tôi",
+      description: "Quản lý ví và thanh toán",
       icon: Wallet,
       href: "/wallet",
     },
     {
       id: "notifications",
-      title: "Notifications",
-      description: "Manage your notification preferences",
+      title: "Thông báo",
+      description: "Quản lý tùy chọn thông báo",
       icon: Bell,
       href: "/notifications",
     },
     {
       id: "settings",
-      title: "Account Settings",
-      description: "General account preferences",
+      title: "Cài đặt Tài khoản",
+      description: "Tùy chọn tài khoản chung",
       icon: Settings,
       href: "/settings-page",
     },
     {
       id: "logout",
-      title: "Logout",
-      description: "Sign out of your account",
+      title: "Đăng xuất",
+      description: "Đăng xuất khỏi tài khoản",
       icon: LogOut,
       action: handleLogout,
       variant: "danger",
     },
-  ]
+  ];
 
   const renderMenuItem = (item: MenuItem) => {
-    const Icon = item.icon
+    const Icon = item.icon;
 
     if (item.href) {
       return (
@@ -84,21 +94,37 @@ export default function ProfilePage() {
                   item.variant === "danger" ? "bg-red-100" : "bg-gray-100"
                 }`}
               >
-                <Icon className={`w-5 h-5 ${item.variant === "danger" ? "text-red-600" : "text-gray-600"}`} />
+                <Icon
+                  className={`w-5 h-5 ${
+                    item.variant === "danger" ? "text-red-600" : "text-gray-600"
+                  }`}
+                />
               </div>
               <div>
-                <h3 className={`font-medium ${item.variant === "danger" ? "text-red-600" : "text-gray-900"}`}>
+                <h3
+                  className={`font-medium ${
+                    item.variant === "danger" ? "text-red-600" : "text-gray-900"
+                  }`}
+                >
                   {item.title}
                 </h3>
-                <p className={`text-sm ${item.variant === "danger" ? "text-red-500" : "text-gray-500"}`}>
+                <p
+                  className={`text-sm ${
+                    item.variant === "danger" ? "text-red-500" : "text-gray-500"
+                  }`}
+                >
                   {item.description}
                 </p>
               </div>
             </div>
-            <ChevronRight className={`w-5 h-5 ${item.variant === "danger" ? "text-red-400" : "text-gray-400"}`} />
+            <ChevronRight
+              className={`w-5 h-5 ${
+                item.variant === "danger" ? "text-red-400" : "text-gray-400"
+              }`}
+            />
           </div>
         </Link>
-      )
+      );
     }
 
     return (
@@ -114,22 +140,38 @@ export default function ProfilePage() {
                 item.variant === "danger" ? "bg-red-100" : "bg-gray-100"
               }`}
             >
-              <Icon className={`w-5 h-5 ${item.variant === "danger" ? "text-red-600" : "text-gray-600"}`} />
+              <Icon
+                className={`w-5 h-5 ${
+                  item.variant === "danger" ? "text-red-600" : "text-gray-600"
+                }`}
+              />
             </div>
             <div>
-              <h3 className={`font-medium ${item.variant === "danger" ? "text-red-600" : "text-gray-900"}`}>
+              <h3
+                className={`font-medium ${
+                  item.variant === "danger" ? "text-red-600" : "text-gray-900"
+                }`}
+              >
                 {item.title}
               </h3>
-              <p className={`text-sm ${item.variant === "danger" ? "text-red-500" : "text-gray-500"}`}>
+              <p
+                className={`text-sm ${
+                  item.variant === "danger" ? "text-red-500" : "text-gray-500"
+                }`}
+              >
                 {item.description}
               </p>
             </div>
           </div>
-          <ChevronRight className={`w-5 h-5 ${item.variant === "danger" ? "text-red-400" : "text-gray-400"}`} />
+          <ChevronRight
+            className={`w-5 h-5 ${
+              item.variant === "danger" ? "text-red-400" : "text-gray-400"
+            }`}
+          />
         </div>
       </button>
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -144,7 +186,11 @@ export default function ProfilePage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10 p-2"
+          >
             <Edit className="w-5 h-5" />
           </Button>
         </div>
@@ -177,13 +223,17 @@ export default function ProfilePage() {
         <Card className="shadow-sm border-0">
           <CardContent className="p-0">
             <div className="p-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Account Menu</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Menu Tài khoản
+              </h2>
             </div>
 
-            <div className="divide-y divide-gray-100">{menuItems.map(renderMenuItem)}</div>
+            <div className="divide-y divide-gray-100">
+              {menuItems.map(renderMenuItem)}
+            </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

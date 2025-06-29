@@ -1,35 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Menu, CreditCard, Smartphone, Banknote, Settings } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import {
+  ArrowLeft,
+  Menu,
+  CreditCard,
+  Smartphone,
+  Banknote,
+  Settings,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface CardData {
-  id: string
-  type: "mastercard" | "visa"
-  number: string
-  expiry: string
-  holderName: string
-  isActive: boolean
+  id: string;
+  type: "mastercard" | "visa";
+  number: string;
+  expiry: string;
+  holderName: string;
+  isActive: boolean;
 }
 
 interface CardSettings {
-  onlinePayments: boolean
-  storePayments: boolean
-  atmWithdrawals: boolean
+  onlinePayments: boolean;
+  storePayments: boolean;
+  atmWithdrawals: boolean;
 }
 
 export default function MyWalletPage() {
-  const router = useRouter()
-  const [activeCardType, setActiveCardType] = useState<"mastercard" | "visa">("mastercard")
+  const router = useRouter();
+  const [activeCardType, setActiveCardType] = useState<"mastercard" | "visa">(
+    "mastercard"
+  );
   const [cardSettings, setCardSettings] = useState<CardSettings>({
     onlinePayments: true,
     storePayments: true,
     atmWithdrawals: true,
-  })
+  });
 
   const [cards] = useState<CardData[]>([
     {
@@ -48,23 +57,23 @@ export default function MyWalletPage() {
       holderName: "ĐĂNG TUYẾN",
       isActive: false,
     },
-  ])
+  ]);
 
-  const activeCard = cards.find((card) => card.type === activeCardType)
+  const activeCard = cards.find((card) => card.type === activeCardType);
 
   const handleSettingChange = (setting: keyof CardSettings) => {
     setCardSettings((prev) => ({
       ...prev,
       [setting]: !prev[setting],
-    }))
-  }
+    }));
+  };
 
   const getCardGradient = (type: "mastercard" | "visa") => {
     if (type === "mastercard") {
-      return "bg-gradient-to-br from-green-500 via-green-600 to-green-700"
+      return "bg-gradient-to-br from-green-500 via-green-600 to-green-700";
     }
-    return "bg-gradient-to-br from-green-400 via-green-500 to-green-600"
-  }
+    return "bg-gradient-to-br from-green-400 via-green-500 to-green-600";
+  };
 
   const getCardLogo = (type: "mastercard" | "visa") => {
     if (type === "mastercard") {
@@ -73,20 +82,25 @@ export default function MyWalletPage() {
           <div className="w-8 h-8 bg-red-500 rounded-full opacity-80"></div>
           <div className="w-8 h-8 bg-yellow-500 rounded-full opacity-80 -ml-4"></div>
         </div>
-      )
+      );
     }
-    return <div className="text-white font-bold text-lg italic">VISA</div>
-  }
+    return <div className="text-white font-bold text-lg italic">VISA</div>;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="p-2"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-semibold text-gray-900">Your Cards</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Thẻ của bạn</h1>
           <Button variant="ghost" size="sm" className="p-2">
             <Menu className="w-5 h-5" />
           </Button>
@@ -125,28 +139,36 @@ export default function MyWalletPage() {
           <div className="relative">
             <div
               className={`${getCardGradient(
-                activeCard.type,
+                activeCard.type
               )} rounded-2xl p-6 text-white shadow-lg transform transition-all duration-300 hover:scale-105`}
             >
               {/* Card Type */}
               <div className="flex justify-between items-start mb-8">
-                <div className="text-sm font-medium opacity-90">{activeCard.type.toUpperCase()}</div>
-                <div className="flex items-center">{getCardLogo(activeCard.type)}</div>
+                <div className="text-sm font-medium opacity-90">
+                  {activeCard.type.toUpperCase()}
+                </div>
+                <div className="flex items-center">
+                  {getCardLogo(activeCard.type)}
+                </div>
               </div>
 
               {/* Card Number */}
               <div className="mb-6">
-                <div className="text-2xl font-mono tracking-wider">{activeCard.number}</div>
+                <div className="text-2xl font-mono tracking-wider">
+                  {activeCard.number}
+                </div>
               </div>
 
               {/* Card Details */}
               <div className="flex justify-between items-end">
                 <div>
-                  <div className="text-xs opacity-70 mb-1">CARD HOLDER</div>
-                  <div className="text-sm font-medium">{activeCard.holderName}</div>
+                  <div className="text-xs opacity-70 mb-1">CHỦ THẺ</div>
+                  <div className="text-sm font-medium">
+                    {activeCard.holderName}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-xs opacity-70 mb-1">EXPIRES</div>
+                  <div className="text-xs opacity-70 mb-1">HẠN SỬ DỤNG</div>
                   <div className="text-sm font-medium">{activeCard.expiry}</div>
                 </div>
               </div>
@@ -160,7 +182,7 @@ export default function MyWalletPage() {
             <div className="p-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Settings className="w-5 h-5 mr-2 text-green-600" />
-                Card Settings
+                Cài đặt Thẻ
               </h3>
             </div>
 
@@ -172,8 +194,12 @@ export default function MyWalletPage() {
                     <CreditCard className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Online Payments</h4>
-                    <p className="text-sm text-gray-500">Enable online transactions</p>
+                    <h4 className="font-medium text-gray-900">
+                      Thanh toán Trực tuyến
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Bật giao dịch trực tuyến
+                    </p>
                   </div>
                 </div>
                 <Switch
@@ -190,8 +216,12 @@ export default function MyWalletPage() {
                     <Smartphone className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Store Payments</h4>
-                    <p className="text-sm text-gray-500">Enable contactless payments</p>
+                    <h4 className="font-medium text-gray-900">
+                      Thanh toán Cửa hàng
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Bật thanh toán không tiếp xúc
+                    </p>
                   </div>
                 </div>
                 <Switch
@@ -208,8 +238,8 @@ export default function MyWalletPage() {
                     <Banknote className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">ATM Withdrawals</h4>
-                    <p className="text-sm text-gray-500">Enable cash withdrawals</p>
+                    <h4 className="font-medium text-gray-900">Rút tiền ATM</h4>
+                    <p className="text-sm text-gray-500">Bật rút tiền mặt</p>
                   </div>
                 </div>
                 <Switch
@@ -229,14 +259,14 @@ export default function MyWalletPage() {
             className="h-16 border-green-200 text-green-600 hover:bg-green-50 flex flex-col items-center justify-center space-y-1"
           >
             <CreditCard className="w-5 h-5" />
-            <span className="text-sm">Add Card</span>
+            <span className="text-sm">Thêm Thẻ</span>
           </Button>
           <Button
             variant="outline"
             className="h-16 border-green-200 text-green-600 hover:bg-green-50 flex flex-col items-center justify-center space-y-1"
           >
             <Settings className="w-5 h-5" />
-            <span className="text-sm">Manage</span>
+            <span className="text-sm">Quản lý</span>
           </Button>
         </div>
 
@@ -245,7 +275,7 @@ export default function MyWalletPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 mb-1">Available Balance</p>
+                <p className="text-sm text-green-600 mb-1">Số dư khả dụng</p>
                 <p className="text-2xl font-bold text-green-700">$2,450.00</p>
               </div>
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -256,5 +286,5 @@ export default function MyWalletPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

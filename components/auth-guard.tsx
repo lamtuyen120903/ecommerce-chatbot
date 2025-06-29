@@ -1,48 +1,78 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../hooks/useAuth"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "../lib/auth-store";
 
 interface AuthGuardProps {
-  children: React.ReactNode
-  requireAuth?: boolean
+  children: React.ReactNode;
+  requireAuth?: boolean;
 }
 
 export function AuthGuard({ children, requireAuth = true }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuth()
-  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const router = useRouter();
 
+  // Handle redirects in useEffect to avoid setState during render
   useEffect(() => {
     if (!isLoading) {
+      // If auth is required but user is not authenticated, redirect to login
       if (requireAuth && !isAuthenticated) {
-        router.push("/auth")
-      } else if (!requireAuth && isAuthenticated) {
-        router.push("/")
+        router.push("/auth");
+        return;
+      }
+
+      // If user is authenticated but trying to access auth page, redirect to home
+      if (
+        isAuthenticated &&
+        typeof window !== "undefined" &&
+        window.location.pathname === "/auth"
+      ) {
+        router.push("/");
+        return;
       }
     }
-  }, [isAuthenticated, isLoading, requireAuth, router])
+  }, [isAuthenticated, isLoading, requireAuth, router]);
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600">Loading...</p>
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang kiểm tra xác thực...</p>
         </div>
       </div>
-    )
+    );
   }
 
+  // If auth is required but user is not authenticated, show loading while redirecting
   if (requireAuth && !isAuthenticated) {
-    return null // Will redirect to auth
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang chuyển hướng...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!requireAuth && isAuthenticated) {
-    return null // Will redirect to home
+  // If user is authenticated but trying to access auth page, show loading while redirecting
+  if (
+    isAuthenticated &&
+    typeof window !== "undefined" &&
+    window.location.pathname === "/auth"
+  ) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang chuyển hướng...</p>
+        </div>
+      </div>
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

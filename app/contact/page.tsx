@@ -1,27 +1,32 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Phone, Mail, MapPin, MessageCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ContactUsPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleCall = () => {
-    window.location.href = "tel:+18156179361"
-  }
+    window.location.href = "tel:+18156179361";
+  };
 
   const handleEmail = () => {
-    window.location.href = "mailto:contact@ccss.com"
-  }
+    window.location.href = "mailto:contact@ccss.com";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-green-500 px-4 py-8 text-center">
         <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-white hover:bg-white/10 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="text-white hover:bg-white/10 p-2"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div></div>
@@ -37,8 +42,10 @@ export default function ContactUsPage() {
       <div className="px-4 py-6 space-y-6">
         {/* Title */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Contact Us</h2>
-          <p className="text-gray-600">How can we help?</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Liên hệ Chúng tôi
+          </h2>
+          <p className="text-gray-600">Chúng tôi có thể giúp gì cho bạn?</p>
         </div>
 
         {/* Contact Info */}
@@ -48,8 +55,10 @@ export default function ContactUsPage() {
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-green-600 mt-1" />
               <div>
-                <h3 className="font-medium text-gray-900">Address</h3>
-                <p className="text-gray-600">303 Phillips Ramp, Miami, FL 11359</p>
+                <h3 className="font-medium text-gray-900">Địa chỉ</h3>
+                <p className="text-gray-600">
+                  303 Phillips Ramp, Miami, FL 11359
+                </p>
               </div>
             </div>
 
@@ -58,7 +67,10 @@ export default function ContactUsPage() {
               <Mail className="w-5 h-5 text-green-600 mt-1" />
               <div>
                 <h3 className="font-medium text-gray-900">Email</h3>
-                <button onClick={handleEmail} className="text-green-600 hover:text-green-700">
+                <button
+                  onClick={handleEmail}
+                  className="text-green-600 hover:text-green-700"
+                >
                   contact@ccss.com
                 </button>
               </div>
@@ -68,8 +80,11 @@ export default function ContactUsPage() {
             <div className="flex items-start space-x-3">
               <Phone className="w-5 h-5 text-green-600 mt-1" />
               <div>
-                <h3 className="font-medium text-gray-900">Phone</h3>
-                <button onClick={handleCall} className="text-green-600 hover:text-green-700 font-medium">
+                <h3 className="font-medium text-gray-900">Điện thoại</h3>
+                <button
+                  onClick={handleCall}
+                  className="text-green-600 hover:text-green-700 font-medium"
+                >
                   815 617 9361
                 </button>
               </div>
@@ -80,7 +95,9 @@ export default function ContactUsPage() {
         {/* Contact Methods */}
         <Card className="shadow-sm">
           <CardContent className="p-6">
-            <h3 className="font-medium text-gray-900 mb-4 text-center">Connect With Us</h3>
+            <h3 className="font-medium text-gray-900 mb-4 text-center">
+              Kết nối với Chúng tôi
+            </h3>
             <div className="flex justify-center space-x-4">
               <Button
                 onClick={handleEmail}
@@ -90,11 +107,17 @@ export default function ContactUsPage() {
                 <Mail className="w-5 h-5" />
               </Button>
 
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 p-0 rounded-full" title="Zalo">
+              <Button
+                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 p-0 rounded-full"
+                title="Zalo"
+              >
                 <span className="font-bold">Z</span>
               </Button>
 
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 p-0 rounded-full" title="Messenger">
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 p-0 rounded-full"
+                title="Messenger"
+              >
                 <MessageCircle className="w-5 h-5" />
               </Button>
             </div>
@@ -103,9 +126,12 @@ export default function ContactUsPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Button onClick={handleCall} className="bg-green-500 hover:bg-green-600 text-white h-12">
+          <Button
+            onClick={handleCall}
+            className="bg-green-500 hover:bg-green-600 text-white h-12"
+          >
             <Phone className="w-4 h-4 mr-2" />
-            Call Now
+            Gọi Ngay
           </Button>
           <Button
             onClick={handleEmail}
@@ -113,10 +139,10 @@ export default function ContactUsPage() {
             className="border-green-200 text-green-600 hover:bg-green-50 h-12"
           >
             <Mail className="w-4 h-4 mr-2" />
-            Send Email
+            Gửi Email
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft,
   ChevronRight,
@@ -21,87 +21,87 @@ import {
   Lock,
   Eye,
   Database,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../../hooks/useAuth"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../hooks/useAuth";
 
 interface SettingsItem {
-  id: string
-  title: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  href?: string
-  action?: () => void
-  variant?: "default" | "danger"
-  toggle?: boolean
-  isToggled?: boolean
-  onToggle?: () => void
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href?: string;
+  action?: () => void;
+  variant?: "default" | "danger";
+  toggle?: boolean;
+  isToggled?: boolean;
+  onToggle?: () => void;
 }
 
 interface SettingsSection {
-  id: string
-  title: string
-  items: SettingsItem[]
+  id: string;
+  title: string;
+  items: SettingsItem[];
 }
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const { user, logout: authLogout } = useAuth()
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [dataCollection, setDataCollection] = useState(true)
+  const router = useRouter();
+  const { user, logout: authLogout } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [dataCollection, setDataCollection] = useState(true);
 
   const handleLogout = () => {
-    authLogout()
-    router.push("/auth")
-  }
+    authLogout();
+    router.push("/auth");
+  };
 
   const handleContactUs = () => {
-    router.push("/contact")
-  }
+    router.push("/contact");
+  };
 
   const handleEditProfile = () => {
-    router.push("/profile/edit")
-  }
+    router.push("/profile/edit");
+  };
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    console.log("Dark mode toggled:", !isDarkMode)
-  }
+    setIsDarkMode(!isDarkMode);
+    console.log("Dark mode toggled:", !isDarkMode);
+  };
 
   const toggleNotifications = () => {
-    setNotificationsEnabled(!notificationsEnabled)
-    console.log("Notifications toggled:", !notificationsEnabled)
-  }
+    setNotificationsEnabled(!notificationsEnabled);
+    console.log("Notifications toggled:", !notificationsEnabled);
+  };
 
   const toggleDataCollection = () => {
-    setDataCollection(!dataCollection)
-    console.log("Data collection toggled:", !dataCollection)
-  }
+    setDataCollection(!dataCollection);
+    console.log("Data collection toggled:", !dataCollection);
+  };
 
   const settingsSections: SettingsSection[] = [
     {
       id: "account",
-      title: "Account Settings",
+      title: "Cài đặt Tài khoản",
       items: [
         {
           id: "edit-profile",
-          title: "Edit Profile",
-          description: "Update your personal information",
+          title: "Chỉnh sửa Hồ sơ",
+          description: "Cập nhật thông tin cá nhân của bạn",
           icon: PenSquare,
           action: handleEditProfile,
         },
         {
           id: "security",
-          title: "Security & Privacy",
-          description: "Manage your account security settings",
+          title: "Bảo mật & Riêng tư",
+          description: "Quản lý cài đặt bảo mật tài khoản",
           icon: Shield,
           action: () => console.log("Navigate to security settings"),
         },
         {
           id: "password",
-          title: "Change Password",
-          description: "Update your account password",
+          title: "Đổi Mật khẩu",
+          description: "Cập nhật mật khẩu tài khoản",
           icon: Lock,
           action: () => console.log("Navigate to password change"),
         },
@@ -109,19 +109,19 @@ export default function SettingsPage() {
     },
     {
       id: "preferences",
-      title: "App Preferences",
+      title: "Tùy chọn Ứng dụng",
       items: [
         {
           id: "language",
-          title: "Language & Region",
-          description: "Change your language preferences",
+          title: "Ngôn ngữ & Khu vực",
+          description: "Thay đổi tùy chọn ngôn ngữ",
           icon: Globe,
           action: () => console.log("Navigate to language settings"),
         },
         {
           id: "theme",
-          title: "Dark Mode",
-          description: "Switch between light and dark theme",
+          title: "Chế độ Tối",
+          description: "Chuyển đổi giữa giao diện sáng và tối",
           icon: Moon,
           toggle: true,
           isToggled: isDarkMode,
@@ -129,8 +129,8 @@ export default function SettingsPage() {
         },
         {
           id: "notifications",
-          title: "Push Notifications",
-          description: "Enable or disable push notifications",
+          title: "Thông báo Đẩy",
+          description: "Bật hoặc tắt thông báo đẩy",
           icon: Bell,
           toggle: true,
           isToggled: notificationsEnabled,
@@ -138,8 +138,8 @@ export default function SettingsPage() {
         },
         {
           id: "app-settings",
-          title: "App Preferences",
-          description: "Customize your app experience",
+          title: "Tùy chọn Ứng dụng",
+          description: "Tùy chỉnh trải nghiệm ứng dụng",
           icon: Smartphone,
           action: () => console.log("Navigate to app preferences"),
         },
@@ -147,19 +147,19 @@ export default function SettingsPage() {
     },
     {
       id: "privacy",
-      title: "Privacy & Data",
+      title: "Riêng tư & Dữ liệu",
       items: [
         {
           id: "privacy-policy",
-          title: "Privacy Policy",
-          description: "View our privacy policy",
+          title: "Chính sách Bảo mật",
+          description: "Xem chính sách bảo mật của chúng tôi",
           icon: Eye,
           action: () => console.log("Navigate to privacy policy"),
         },
         {
           id: "data-collection",
-          title: "Data Collection",
-          description: "Control how we collect your data",
+          title: "Thu thập Dữ liệu",
+          description: "Kiểm soát cách chúng tôi thu thập dữ liệu",
           icon: Database,
           toggle: true,
           isToggled: dataCollection,
@@ -169,35 +169,37 @@ export default function SettingsPage() {
     },
     {
       id: "support",
-      title: "Support & Help",
+      title: "Hỗ trợ & Trợ giúp",
       items: [
         {
           id: "contact",
-          title: "Contact Support",
-          description: "Get help and support",
+          title: "Liên hệ Hỗ trợ",
+          description: "Nhận hỗ trợ và trợ giúp",
           icon: HelpCircle,
           action: handleContactUs,
         },
         {
           id: "logout",
-          title: "Log out from your account",
-          description: "Sign out of your current session",
+          title: "Đăng xuất khỏi tài khoản",
+          description: "Đăng xuất khỏi phiên hiện tại",
           icon: LogOut,
           action: handleLogout,
           variant: "danger",
         },
       ],
     },
-  ]
+  ];
 
   const renderSettingsItem = (item: SettingsItem) => {
-    const Icon = item.icon
+    const Icon = item.icon;
 
     const content = (
       <div
         className={`w-full flex items-center justify-between p-4 ${
           item.action && !item.toggle ? "hover:bg-gray-50 cursor-pointer" : ""
-        } transition-colors text-left ${item.variant === "danger" ? "hover:bg-red-50" : ""}`}
+        } transition-colors text-left ${
+          item.variant === "danger" ? "hover:bg-red-50" : ""
+        }`}
         onClick={item.action && !item.toggle ? item.action : undefined}
       >
         <div className="flex items-center space-x-4">
@@ -206,13 +208,25 @@ export default function SettingsPage() {
               item.variant === "danger" ? "bg-red-100" : "bg-gray-100"
             }`}
           >
-            <Icon className={`w-5 h-5 ${item.variant === "danger" ? "text-red-600" : "text-gray-600"}`} />
+            <Icon
+              className={`w-5 h-5 ${
+                item.variant === "danger" ? "text-red-600" : "text-gray-600"
+              }`}
+            />
           </div>
           <div>
-            <h3 className={`font-medium ${item.variant === "danger" ? "text-red-600" : "text-gray-900"}`}>
+            <h3
+              className={`font-medium ${
+                item.variant === "danger" ? "text-red-600" : "text-gray-900"
+              }`}
+            >
               {item.title}
             </h3>
-            <p className={`text-sm ${item.variant === "danger" ? "text-red-500" : "text-gray-500"}`}>
+            <p
+              className={`text-sm ${
+                item.variant === "danger" ? "text-red-500" : "text-gray-500"
+              }`}
+            >
               {item.description}
             </p>
           </div>
@@ -224,23 +238,37 @@ export default function SettingsPage() {
             className="data-[state=checked]:bg-green-500"
           />
         ) : (
-          <ChevronRight className={`w-5 h-5 ${item.variant === "danger" ? "text-red-400" : "text-gray-400"}`} />
+          <ChevronRight
+            className={`w-5 h-5 ${
+              item.variant === "danger" ? "text-red-400" : "text-gray-400"
+            }`}
+          />
         )}
       </div>
-    )
+    );
 
-    return <div key={item.id}>{content}</div>
-  }
+    return <div key={item.id}>{content}</div>;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section - Matching Profile Page */}
       <div className="bg-green-500 px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-white hover:bg-white/10 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="text-white hover:bg-white/10 p-2"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleEditProfile} className="text-white hover:bg-white/10 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleEditProfile}
+            className="text-white hover:bg-white/10 p-2"
+          >
             <PenSquare className="w-5 h-5" />
           </Button>
         </div>
@@ -251,8 +279,12 @@ export default function SettingsPage() {
             <User className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-white">{user?.name || "User"}</h1>
-            <p className="text-white/80 text-sm">{user?.email || "user@example.com"}</p>
+            <h1 className="text-xl font-semibold text-white">
+              {user?.name || "User"}
+            </h1>
+            <p className="text-white/80 text-sm">
+              {user?.email || "user@example.com"}
+            </p>
           </div>
         </div>
       </div>
@@ -263,10 +295,14 @@ export default function SettingsPage() {
           <Card key={section.id} className="shadow-sm border-0">
             <CardContent className="p-0">
               <div className="p-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900">{section.title}</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {section.title}
+                </h2>
               </div>
 
-              <div className="divide-y divide-gray-100">{section.items.map((item) => renderSettingsItem(item))}</div>
+              <div className="divide-y divide-gray-100">
+                {section.items.map((item) => renderSettingsItem(item))}
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -279,13 +315,17 @@ export default function SettingsPage() {
                 <Smartphone className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="font-medium text-green-900">Customer Support App</h4>
-                <p className="text-sm text-green-700">Version 2.1.0 • Settings</p>
+                <h4 className="font-medium text-green-900">
+                  Customer Support App
+                </h4>
+                <p className="text-sm text-green-700">
+                  Version 2.1.0 • Settings
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
