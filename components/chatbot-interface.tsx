@@ -152,17 +152,32 @@ export function ChatbotInterface({
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
 
-      if (data.success) {
+      let data: any = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (parseErr) {
+        console.warn("Non-JSON or malformed response from n8n:", parseErr);
+      }
+
+      if (data && data.success) {
         return (
           data.response ||
           "Cảm ơn bạn đã gửi tin nhắn. Tôi ở đây để giúp bạn với mọi câu hỏi."
         );
+      }
+
+      // Fallbacks for error or empty body
+      if (!text) {
+        console.error("Empty response from n8n");
+      } else if (!data) {
+        console.error("Received non-JSON response:", text.slice(0, 200));
       } else {
         console.error("API error:", data);
-        return "Xin lỗi, tôi đang gặp khó khăn trong việc xử lý yêu cầu của bạn ngay bây giờ. Vui lòng thử lại sau.";
       }
+
+      return "Xin lỗi, tôi đang gặp khó khăn trong việc xử lý yêu cầu của bạn ngay bây giờ. Vui lòng thử lại sau.";
     } catch (error) {
       console.error("Error sending to n8n:", error);
       return "Tôi đang gặp một số khó khăn kỹ thuật. Vui lòng thử lại trong giây lát, hoặc liên hệ trực tiếp với đội ngũ hỗ trợ nếu vấn đề vẫn tiếp tục.";
