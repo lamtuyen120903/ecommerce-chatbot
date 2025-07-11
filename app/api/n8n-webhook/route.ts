@@ -22,9 +22,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Correct webhook URL
-    const baseWebhookUrl =
-      "https://n8ntina.onegroup.id.vn/webhook/baa63860-e324-4ac6-b16e-c6deabcc3872";
+    // Correct webhook URL from environment variable
+    const baseWebhookUrl = process.env.NEXT_PUBLIC_N8N_BASE_WEBHOOK_URL;
+
+    if (!baseWebhookUrl) {
+      console.error("N8N_BASE_WEBHOOK_URL env variable is not set");
+      return Response.json(
+        {
+          success: false,
+          response: "Server configuration error: missing webhook URL.",
+        },
+        { status: 500 }
+      );
+    }
 
     // Category-specific n8n webhook URLs
     const n8nWebhookUrls = {

@@ -28,6 +28,10 @@ import {
 import { AuthGuard } from "../../components/auth-guard";
 import { useAuthStore } from "../../lib/auth-store";
 import type { RegisterData, LoginData, AuthError } from "../../types/auth";
+import {
+  validateRegistrationData,
+  validateLoginData,
+} from "../../utils/auth-validation";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -52,16 +56,28 @@ export default function AuthPage() {
   });
 
   const handleLoginDataChange = (field: keyof LoginData, value: string) => {
-    setLoginData((prev) => ({ ...prev, [field]: value }));
-    clearErrors();
+    setLoginData((prev) => {
+      const next = { ...prev, [field]: value };
+      // Validate login data in real-time
+      const validationErrors = validateLoginData(next);
+      setErrors(validationErrors);
+      return next;
+    });
+    setSuccessMessage("");
   };
 
   const handleRegisterDataChange = (
     field: keyof RegisterData,
     value: string
   ) => {
-    setRegisterData((prev) => ({ ...prev, [field]: value }));
-    clearErrors();
+    setRegisterData((prev) => {
+      const next = { ...prev, [field]: value };
+      // Real-time validation for registration data
+      const validationErrors = validateRegistrationData(next);
+      setErrors(validationErrors);
+      return next;
+    });
+    setSuccessMessage("");
   };
 
   const clearErrors = () => {
@@ -79,8 +95,16 @@ export default function AuthPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     clearErrors();
+
+    // Validate login data before submitting
+    const validationErrors = validateLoginData(loginData);
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const result = await login(loginData);
@@ -102,8 +126,16 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     clearErrors();
+
+    // Client-side validation for registration data (including password rules)
+    const validationErrors = validateRegistrationData(registerData);
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const result = await register(registerData);

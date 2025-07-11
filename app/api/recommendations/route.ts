@@ -1,28 +1,51 @@
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { userEmail, category, limit = 6, preferences = [], previousPurchases = [] } = body
+    const body = await req.json();
+    const {
+      userEmail,
+      category,
+      limit = 6,
+      preferences = [],
+      previousPurchases = [],
+    } = body;
 
     // Validate required fields
     if (!userEmail || !category) {
       return Response.json(
         {
           success: false,
-          error: "Missing required fields: userEmail and category are required.",
+          error:
+            "Missing required fields: userEmail and category are required.",
         },
-        { status: 400 },
-      )
+        { status: 400 }
+      );
     }
 
-    // Webhook URL for recommendations
-    const webhookUrl = "https://n8ntina.onegroup.id.vn/webhook/c175892b-d1e4-4479-af3c-785c1dffead3"
+    // Webhook URL for recommendations from environment variable
+    const webhookUrl = process.env.NEXT_PUBLIC_N8N_RECOMMENDATIONS_WEBHOOK_URL;
+
+    if (!webhookUrl) {
+      console.error("N8N_RECOMMENDATIONS_WEBHOOK_URL env variable is not set");
+      return Response.json(
+        {
+          success: false,
+          error:
+            "Server configuration error: missing recommendation webhook URL.",
+        },
+        { status: 500 }
+      );
+    }
 
     // Send to n8n webhook
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
-      console.log(`Sending recommendation request for ${category}:`, { userEmail, category, limit })
+      console.log(`Sending recommendation request for ${category}:`, {
+        userEmail,
+        category,
+        limit,
+      });
 
       const response = await fetch(webhookUrl, {
         method: "POST",
@@ -42,64 +65,75 @@ export async function POST(req: Request) {
           context: getRecommendationContext(category),
         }),
         signal: controller.signal,
-      })
+      });
 
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (response.ok) {
-        const data = await response.json()
-        console.log(`Recommendation response for ${category}:`, data)
+        const data = await response.json();
+        console.log(`Recommendation response for ${category}:`, data);
 
         // Handle the response format from n8n
-        let products = []
-        let reason = "Personalized recommendations for you"
+        let products = [];
+        let reason = "Personalized recommendations for you";
 
         // Handle the new Vietnamese format
         if (Array.isArray(data) && data.length > 0) {
-          const firstItem = data[0]
+          const firstItem = data[0];
 
           // Check if it's the new Vietnamese format
-          if (firstItem.content && firstItem.content.data && Array.isArray(firstItem.content.data)) {
-            products = parseVietnameseProducts(firstItem.content.data, category)
-            reason = "Sản phẩm được đề xuất cho bạn"
+          if (
+            firstItem.content &&
+            firstItem.content.data &&
+            Array.isArray(firstItem.content.data)
+          ) {
+            products = parseVietnameseProducts(
+              firstItem.content.data,
+              category
+            );
+            reason = "Sản phẩm được đề xuất cho bạn";
           } else if (firstItem.output) {
             try {
-              const parsed = JSON.parse(firstItem.output)
+              const parsed = JSON.parse(firstItem.output);
               if (parsed.data && Array.isArray(parsed.data)) {
-                products = parseVietnameseProducts(parsed.data, category)
-                reason = "Sản phẩm được đề xuất cho bạn"
+                products = parseVietnameseProducts(parsed.data, category);
+                reason = "Sản phẩm được đề xuất cho bạn";
               } else if (parsed.products) {
-                products = parsed.products
-                reason = parsed.reason || reason
+                products = parsed.products;
+                reason = parsed.reason || reason;
               }
             } catch {
-              products = getFallbackProducts(category)
+              products = getFallbackProducts(category);
             }
           } else if (firstItem.products) {
-            products = firstItem.products
-            reason = firstItem.reason || reason
+            products = firstItem.products;
+            reason = firstItem.reason || reason;
           }
-        } else if (data.content && data.content.data && Array.isArray(data.content.data)) {
-          products = parseVietnameseProducts(data.content.data, category)
-          reason = "Sản phẩm được đề xuất cho bạn"
+        } else if (
+          data.content &&
+          data.content.data &&
+          Array.isArray(data.content.data)
+        ) {
+          products = parseVietnameseProducts(data.content.data, category);
+          reason = "Sản phẩm được đề xuất cho bạn";
         } else if (data.data && Array.isArray(data.data)) {
-          products = parseVietnameseProducts(data.data, category)
-          reason = "Sản phẩm được đề xuất cho bạn"
+          products = parseVietnameseProducts(data.data, category);
+          reason = "Sản phẩm được đề xuất cho bạn";
         } else if (data.products) {
-          products = data.products
-          reason = data.reason || reason
+          products = data.products;
+          reason = data.reason || reason;
         } else if (data.output) {
           try {
-            const parsed = JSON.parse(data.output)
+            const parsed = JSON.parse(data.output);
             if (parsed.data && Array.isArray(parsed.data)) {
-              products = parseVietnameseProducts(parsed.data, category)
-              reason = "Sản phẩm được đề xuất cho bạn"
+              products = parseVietnameseProducts(parsed.data, category);
+              reason = "Sản phẩm được đề xuất cho bạn";
             } else if (parsed.products) {
-              products = parsed.products
-              reason = parsed.reason || reason
+              products = parsed.products;
+              reason = parsed.reason || reason;
             }
           } catch {
-            products = getFallbackProducts(category)
+            products = getFallbackProducts(category);
           }
         }
 
@@ -109,21 +143,25 @@ export async function POST(req: Request) {
           category,
           reason,
           timestamp: new Date().toISOString(),
-        })
+        });
       } else {
-        console.error(`Recommendation webhook returned status: ${response.status}`)
-        throw new Error(`Webhook returned status: ${response.status}`)
+        console.error(
+          `Recommendation webhook returned status: ${response.status}`
+        );
+        throw new Error(`Webhook returned status: ${response.status}`);
       }
     } catch (fetchError) {
-      clearTimeout(timeoutId)
-      console.error(`Recommendation webhook error:`, fetchError)
-      throw fetchError
+      clearTimeout(timeoutId);
+      console.error(`Recommendation webhook error:`, fetchError);
+      throw fetchError;
     }
   } catch (error) {
-    console.error("Recommendation API error:", error)
+    console.error("Recommendation API error:", error);
 
     // Return fallback recommendations on error
-    const { category = "digital" } = await req.json().catch(() => ({ category: "digital" }))
+    const { category = "digital" } = await req
+      .json()
+      .catch(() => ({ category: "digital" }));
 
     return Response.json({
       success: false,
@@ -132,26 +170,26 @@ export async function POST(req: Request) {
       reason: "Popular items you might like",
       timestamp: new Date().toISOString(),
       note: "Using fallback recommendations due to API error",
-    })
+    });
   }
 }
 
 function parseVietnameseProducts(data: any[], category: string) {
   return data.map((item, index) => {
     // Parse Vietnamese price format (remove VND and convert to number)
-    const priceString = item.price.replace(/[^\d,]/g, "").replace(/,/g, "")
-    const price = Number.parseInt(priceString) / 1000 // Convert to thousands for display
+    const priceString = item.price.replace(/[^\d,]/g, "").replace(/,/g, "");
+    const price = Number.parseInt(priceString) / 1000; // Convert to thousands for display
 
     // Generate a unique ID
-    const id = `vn-${category}-${index + 1}`
+    const id = `vn-${category}-${index + 1}`;
 
     // Extract product name and create description
-    const name = item.product_name
-    const description = generateDescription(name, category)
+    const name = item.product_name;
+    const description = generateDescription(name, category);
 
     // Generate rating and review count
-    const rating = 4.0 + Math.random() * 1.0 // Random rating between 4.0-5.0
-    const reviewCount = Math.floor(Math.random() * 1000) + 100 // Random reviews 100-1100
+    const rating = 4.0 + Math.random() * 1.0; // Random rating between 4.0-5.0
+    const reviewCount = Math.floor(Math.random() * 1000) + 100; // Random reviews 100-1100
 
     return {
       id,
@@ -165,8 +203,8 @@ function parseVietnameseProducts(data: any[], category: string) {
       tags: generateTags(name, category),
       inStock: true,
       productUrl: item.product_url,
-    }
-  })
+    };
+  });
 }
 
 function generateDescription(name: string, category: string): string {
@@ -186,19 +224,28 @@ function generateDescription(name: string, category: string): string {
     orders: {
       default: "Dịch vụ hỗ trợ đơn hàng chuyên nghiệp",
     },
-  }
+  };
 
-  const categoryDescriptions = descriptions[category as keyof typeof descriptions] || descriptions.digital
+  const categoryDescriptions =
+    descriptions[category as keyof typeof descriptions] || descriptions.digital;
+
+  const desc: any = categoryDescriptions; // cast for flexible key access
 
   if (name.toLowerCase().includes("tab")) {
-    return categoryDescriptions.tablet || categoryDescriptions.default
-  } else if (name.toLowerCase().includes("pixel") || name.toLowerCase().includes("phone")) {
-    return categoryDescriptions.phone || categoryDescriptions.default
-  } else if (name.toLowerCase().includes("wf") || name.toLowerCase().includes("headphone")) {
-    return categoryDescriptions.headphone || categoryDescriptions.default
+    return desc.tablet || desc.default;
+  } else if (
+    name.toLowerCase().includes("pixel") ||
+    name.toLowerCase().includes("phone")
+  ) {
+    return desc.phone || desc.default;
+  } else if (
+    name.toLowerCase().includes("wf") ||
+    name.toLowerCase().includes("headphone")
+  ) {
+    return desc.headphone || desc.default;
   }
 
-  return categoryDescriptions.default
+  return desc.default;
 }
 
 function generateTags(name: string, category: string): string[] {
@@ -207,19 +254,21 @@ function generateTags(name: string, category: string): string[] {
     clothes: ["Fashion", "Style"],
     food: ["Food", "Gourmet"],
     orders: ["Service", "Support"],
-  }
+  };
 
-  const tags = [...(baseTags[category as keyof typeof baseTags] || baseTags.digital)]
+  const tags = [
+    ...(baseTags[category as keyof typeof baseTags] || baseTags.digital),
+  ];
 
   // Add specific tags based on product name
-  if (name.toLowerCase().includes("samsung")) tags.push("Samsung")
-  if (name.toLowerCase().includes("sony")) tags.push("Sony")
-  if (name.toLowerCase().includes("google")) tags.push("Google")
-  if (name.toLowerCase().includes("tab")) tags.push("Tablet")
-  if (name.toLowerCase().includes("pixel")) tags.push("Smartphone")
-  if (name.toLowerCase().includes("wf")) tags.push("Wireless", "Audio")
+  if (name.toLowerCase().includes("samsung")) tags.push("Samsung");
+  if (name.toLowerCase().includes("sony")) tags.push("Sony");
+  if (name.toLowerCase().includes("google")) tags.push("Google");
+  if (name.toLowerCase().includes("tab")) tags.push("Tablet");
+  if (name.toLowerCase().includes("pixel")) tags.push("Smartphone");
+  if (name.toLowerCase().includes("wf")) tags.push("Wireless", "Audio");
 
-  return tags
+  return tags;
 }
 
 // Keep existing functions unchanged
@@ -232,9 +281,9 @@ function getRecommendationContext(category: string): string {
     food: "Generate product recommendations for food and beverage items including snacks, drinks, gourmet items, and specialty foods.",
     orders:
       "Generate product recommendations for order-related services including shipping upgrades, gift wrapping, and additional services.",
-  }
+  };
 
-  return contexts[category as keyof typeof contexts] || contexts.digital
+  return contexts[category as keyof typeof contexts] || contexts.digital;
 }
 
 function getFallbackProducts(category: string) {
@@ -299,7 +348,10 @@ function getFallbackProducts(category: string) {
         inStock: true,
       },
     ],
-  }
+  };
 
-  return fallbackProducts[category as keyof typeof fallbackProducts] || fallbackProducts.digital
+  return (
+    fallbackProducts[category as keyof typeof fallbackProducts] ||
+    fallbackProducts.digital
+  );
 }
