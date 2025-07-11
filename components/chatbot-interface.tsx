@@ -115,6 +115,27 @@ export function ChatbotInterface({
     return colors[category as keyof typeof colors] || colors.digital;
   };
 
+  // Helper to transform plain-text URLs into clickable links
+  const linkify = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   const sendToN8nWorkflow = async (message: string, category: string) => {
     try {
       const response = await fetch("/api/n8n-webhook", {
@@ -342,7 +363,9 @@ export function ChatbotInterface({
                           : "bg-gray-100 text-gray-900"
                       }`}
                     >
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap break-words">
+                        {linkify(message.content)}
+                      </p>
                     </div>
 
                     {/* Attachments */}

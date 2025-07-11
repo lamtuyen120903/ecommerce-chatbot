@@ -36,10 +36,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Send to n8n webhook
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-
+    // Send to n8n webhook (wait for full response)
     try {
       console.log(`Sending recommendation request for ${category}:`, {
         userEmail,
@@ -64,10 +61,10 @@ export async function POST(req: Request) {
           action: "get_recommendations",
           context: getRecommendationContext(category),
         }),
-        signal: controller.signal,
+        // No abort controller; wait until webhook responds
       });
 
-      clearTimeout(timeoutId);
+      // No timeout cleanup necessary
 
       if (response.ok) {
         const data = await response.json();
@@ -151,7 +148,6 @@ export async function POST(req: Request) {
         throw new Error(`Webhook returned status: ${response.status}`);
       }
     } catch (fetchError) {
-      clearTimeout(timeoutId);
       console.error(`Recommendation webhook error:`, fetchError);
       throw fetchError;
     }

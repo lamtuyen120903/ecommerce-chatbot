@@ -57,10 +57,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Send to category-specific n8n webhook
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
+    // Send to category-specific n8n webhook (wait for full response)
     try {
       console.log(`Sending to ${category} n8n webhook:`, {
         message,
@@ -84,10 +81,10 @@ export async function POST(req: Request) {
           botType: `${category}-specialist`,
           context: getCategoryContext(category),
         }),
-        signal: controller.signal,
+        // No abort controller; wait until webhook responds
       });
 
-      clearTimeout(timeoutId);
+      // No timeout cleanup necessary
 
       // Log response headers for debugging
       console.log(
@@ -204,18 +201,8 @@ export async function POST(req: Request) {
         );
       }
     } catch (fetchError: any) {
-      clearTimeout(timeoutId);
-
-      if (fetchError.name === "AbortError") {
-        console.error(`${category} n8n webhook timeout`);
-        return Response.json({
-          success: true,
-          response: getCategorySpecificFallback(category, "timeout"),
-        });
-      } else {
-        console.error(`${category} n8n webhook fetch error:`, fetchError);
-        throw fetchError;
-      }
+      console.error(`${category} n8n webhook fetch error:`, fetchError);
+      throw fetchError;
     }
   } catch (error) {
     console.error("N8N webhook error:", error);
