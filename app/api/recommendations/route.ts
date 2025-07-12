@@ -67,7 +67,23 @@ export async function POST(req: Request) {
       // No timeout cleanup necessary
 
       if (response.ok) {
-        const data = await response.json();
+        const text = await response.text();
+        let data: any = null;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (err) {
+          console.error(`JSON parse error for ${category}:`, err);
+        }
+
+        if (!data) {
+          data = {};
+        }
+        if (!data) {
+          console.warn(
+            `Non-JSON or empty response for ${category}:`,
+            text?.slice(0, 200)
+          );
+        }
         console.log(`Recommendation response for ${category}:`, data);
 
         // Handle the response format from n8n
@@ -132,6 +148,12 @@ export async function POST(req: Request) {
           } catch {
             products = getFallbackProducts(category);
           }
+        }
+
+        // If after parsing no products found, use fallback
+        if (!products || products.length === 0) {
+          products = getFallbackProducts(category);
+          reason = "Popular items you might like";
         }
 
         return Response.json({

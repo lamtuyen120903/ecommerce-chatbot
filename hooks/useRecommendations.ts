@@ -1,88 +1,116 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { RecommendationService, type Product } from "../services/recommendation-service"
+import { useState, useCallback } from "react";
+import type { Product } from "../services/recommendation-service";
 
-interface UseRecommendationsReturn {
-  recommendations: Record<string, Product[]>
-  isLoading: boolean
-  error: string | null
-  getRecommendations: (category: string, userEmail: string) => Promise<void>
-  refreshRecommendations: (userEmail: string) => Promise<void>
-  clearRecommendations: () => void
+interface RecommendationApiResponse {
+  success: boolean;
+  products: Product[];
+  category: string;
+  reason: string;
+  timestamp: string;
 }
 
-export function useRecommendations(userEmail: string): UseRecommendationsReturn {
-  const [recommendations, setRecommendations] = useState<Record<string, Product[]>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+interface UseRecommendationsReturn {
+  recommendations: Record<string, Product[]>;
+  isLoading: boolean;
+  error: string | null;
+  getRecommendations: (category: string, userEmail: string) => Promise<void>;
+  refreshRecommendations: (userEmail: string) => Promise<void>;
+  clearRecommendations: () => void;
+}
 
-  const getRecommendations = useCallback(async (category: string, email: string) => {
-    if (!email) return
+export function useRecommendations(
+  userEmail: string
+): UseRecommendationsReturn {
+  const [recommendations, setRecommendations] = useState<
+    Record<string, Product[]>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    setIsLoading(true)
-    setError(null)
+  const getRecommendations = useCallback(
+    async (category: string, email: string) => {
+      if (!email) return;
 
-    try {
-      const response = await RecommendationService.getRecommendations({
-        userEmail: email,
-        category,
-        limit: 6,
-      })
+      setIsLoading(true);
+      setError(null);
 
-      setRecommendations((prev) => ({
-        ...prev,
-        [category]: response.products,
-      }))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch recommendations")
-      // Set empty array for failed category to prevent infinite loading
-      setRecommendations((prev) => ({
-        ...prev,
-        [category]: [],
-      }))
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+      try {
+        const res = await fetch("/api/recommendations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userEmail: email, category, limit: 6 }),
+        });
+
+        const data: RecommendationApiResponse = await res.json();
+
+        if (!data.success) throw new Error("API error");
+
+        setRecommendations((prev) => ({
+          ...prev,
+          [category]: data.products,
+        }));
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch recommendations"
+        );
+        // Set empty array for failed category to prevent infinite loading
+        setRecommendations((prev) => ({
+          ...prev,
+          [category]: [],
+        }));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   const refreshRecommendations = useCallback(async (email: string) => {
-    if (!email) return
+    if (!email) return;
 
-    const categories = ["digital", "clothes", "food"]
-    setIsLoading(true)
-    setError(null)
+    const categories = ["digital", "clothes", "food"];
+    setIsLoading(true);
+    setError(null);
 
     try {
       const promises = categories.map((category) =>
-        RecommendationService.getRecommendations({
-          userEmail: email,
-          category,
-          limit: 6,
-        }),
-      )
+        fetch("/api/recommendations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userEmail: email, category, limit: 6 }),
+        }).then((r) => r.json() as Promise<RecommendationApiResponse>)
+      );
 
-      const responses = await Promise.allSettled(promises)
-      const newRecommendations: Record<string, Product[]> = {}
+      const responses = await Promise.allSettled(promises);
+      const newRecommendations: Record<string, Product[]> = {};
 
       responses.forEach((result, index) => {
-        if (result.status === "fulfilled") {
-          newRecommendations[categories[index]] = result.value.products
+        if (
+          result.status === "fulfilled" &&
+          (result.value as RecommendationApiResponse).success
+        ) {
+          newRecommendations[categories[index]] = (
+            result.value as RecommendationApiResponse
+          ).products;
         }
-      })
+      });
 
-      setRecommendations(newRecommendations)
+      setRecommendations(newRecommendations);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to refresh recommendations")
+      setError(
+        err instanceof Error ? err.message : "Failed to refresh recommendations"
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   const clearRecommendations = useCallback(() => {
-    setRecommendations({})
-    setError(null)
-  }, [])
+    setRecommendations({});
+    setError(null);
+  }, []);
 
   // Remove or comment out the auto-loading useEffect:
   // useEffect(() => {
@@ -100,5 +128,5 @@ export function useRecommendations(userEmail: string): UseRecommendationsReturn 
     getRecommendations,
     refreshRecommendations,
     clearRecommendations,
-  }
+  };
 }

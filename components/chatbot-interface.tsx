@@ -117,7 +117,8 @@ export function ChatbotInterface({
 
   // Helper to transform plain-text URLs into clickable links
   const linkify = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // Match URLs but stop before a closing parenthesis if it is not part of the URL
+    const urlRegex = /(https?:\/\/[^\s)]+)/g;
     return text.split(urlRegex).map((part, i) => {
       if (urlRegex.test(part)) {
         return (
